@@ -5,10 +5,10 @@ import com.destroystokyo.paper.profile.PlayerProfile
 import io.papermc.paper.datapack.DatapackManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
-import net.minecraft.enchantment.Enchantments
-import net.minecraft.entity.effect.StatusEffects
-import net.minecraft.server.dedicated.DedicatedPlayerManager
-import net.minecraft.server.dedicated.MinecraftDedicatedServer
+import net.minecraft.server.dedicated.DedicatedPlayerList
+import net.minecraft.server.dedicated.DedicatedServer
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.item.enchantment.Enchantments
 import org.bukkit.*
 import org.bukkit.advancement.Advancement
 import org.bukkit.block.data.BlockData
@@ -45,8 +45,8 @@ import java.util.logging.Logger
 
 @Suppress("DEPRECATION")
 class QuartzServer(
-    private val console: MinecraftDedicatedServer,
-    private val players: DedicatedPlayerManager,
+    private val console: DedicatedServer,
+    private val players: DedicatedPlayerList,
 ) : Server {
     private val logger = QuartzMod.logger
     private val serverName = QuartzMod.MOD_ID
@@ -55,7 +55,7 @@ class QuartzServer(
     private val pluginManager = SimplePluginManager(this, this.commandMap)
     private val configuration: YamlConfiguration
     private val commandsConfiguration: YamlConfiguration
-    private val bukkitVersion: String = getBukkitVersion()
+    private val bukkitVersion: String = getPaperVersion()
 
     init {
         Bukkit.setServer(this)
@@ -63,7 +63,7 @@ class QuartzServer(
         Enchantment.stopAcceptingRegistrations()
 
 //        Potion.setPotionBrewer(QuartzPotionBrewer())
-        StatusEffects.BLINDNESS.javaClass
+        MobEffects.BLINDNESS.javaClass
         PotionEffectType.stopAcceptingRegistrations()
 
         configuration = YamlConfiguration.loadConfiguration(Options.bukkitSettings)
@@ -798,7 +798,7 @@ class QuartzServer(
     }
 
     companion object {
-        fun getBukkitVersion(): String {
+        fun getPaperVersion(): String {
             var result = "Unknown-Version"
             val stream =
                 Bukkit::class.java.classLoader.getResourceAsStream("META-INF/maven/io.papermc.paper/paper-api/pom.properties")

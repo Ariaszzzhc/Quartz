@@ -2,8 +2,7 @@ package com.hiarias.quartz
 
 import com.hiarias.quartz.event.PlayerManagerStartedCallback
 import net.fabricmc.api.ModInitializer
-import net.minecraft.server.dedicated.DedicatedPlayerManager
-import net.minecraft.util.ActionResult
+import net.minecraft.server.dedicated.DedicatedPlayerList
 import org.apache.logging.log4j.LogManager
 
 object QuartzMod : ModInitializer {
@@ -17,8 +16,7 @@ object QuartzMod : ModInitializer {
     override fun onInitialize() {
         PlayerManagerStartedCallback.EVENT.register { server, players ->
             logger.info("Starting Quartz Server...")
-            bukkit = QuartzServer(server, players as DedicatedPlayerManager)
-            ActionResult.PASS
+            bukkit = QuartzServer(server, players as DedicatedPlayerList)
         }
     }
 }

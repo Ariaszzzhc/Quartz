@@ -1,13 +1,11 @@
 package com.hiarias.quartz.event
 
 import net.fabricmc.fabric.api.event.EventFactory
-import net.minecraft.server.PlayerManager
-import net.minecraft.server.dedicated.MinecraftDedicatedServer
-import net.minecraft.util.ActionResult
+import net.minecraft.server.dedicated.DedicatedServer
+import net.minecraft.server.players.PlayerList
 
-@FunctionalInterface
 fun interface PlayerManagerStartedCallback {
-    fun interact(server: MinecraftDedicatedServer, players: PlayerManager): ActionResult
+    fun interact(server: DedicatedServer, players: PlayerList)
 
     companion object {
         val EVENT = EventFactory.createArrayBacked(
@@ -15,13 +13,8 @@ fun interface PlayerManagerStartedCallback {
         ) { listeners ->
             PlayerManagerStartedCallback { server, players ->
                 for (listener in listeners) {
-                    val result = listener.interact(server, players)
-                    if (result != ActionResult.PASS) {
-                        return@PlayerManagerStartedCallback result
-                    }
+                    listener.interact(server, players)
                 }
-
-                ActionResult.PASS
             }
         }
     }
