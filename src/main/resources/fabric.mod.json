@@ -13,10 +13,9 @@
     "main": [{
       "adapter": "kotlin",
       "value": "com.hiarias.quartz.QuartzMod"
-    }
-    ]
+    }]
   },
-  "mixins": [],
+  "mixins": ["quartz.mixin.json"],
   "depends": {
     "fabricloader": ">=0.8.7",
     "fabric": "*",
