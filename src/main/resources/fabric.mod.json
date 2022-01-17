@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "quartz",
+  "version": "${version}",
+
+  "name": "Example Mod",
+  "description": "bukkit implementation based on fabric!",
+  "authors": [
+    "Ariaszzzhc <ariaszzzhc@outlook.com>"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "main": [{
+      "adapter": "kotlin",
+      "value": "com.hiarias.quartz.QuartzMod"
+    }
+    ]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.8.7",
+    "fabric": "*",
+    "fabric-language-kotlin": "*",
+    "minecraft": "1.18.x"
+  }
+}
