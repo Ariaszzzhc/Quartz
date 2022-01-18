@@ -4,6 +4,7 @@ import com.destroystokyo.paper.entity.ai.MobGoals
 import com.destroystokyo.paper.profile.PlayerProfile
 import com.hiarias.quartz.mixin.DedicatedServerPropertiesAccessor
 import com.hiarias.quartz.mixin.PlayerListAccessor
+import com.hiarias.quartz.scheduler.QuartzScheduler
 import io.papermc.paper.datapack.DatapackManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
@@ -59,6 +60,7 @@ class QuartzServer(
     private val configuration: YamlConfiguration
     private val commandsConfiguration: YamlConfiguration
     private val bukkitVersion: String = getPaperVersion()
+    private val scheduler = QuartzScheduler()
 
     init {
         Bukkit.setServer(this)
