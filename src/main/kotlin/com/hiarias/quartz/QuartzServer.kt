@@ -2,6 +2,8 @@ package com.hiarias.quartz
 
 import com.destroystokyo.paper.entity.ai.MobGoals
 import com.destroystokyo.paper.profile.PlayerProfile
+import com.hiarias.quartz.mixin.DedicatedServerPropertiesAccessor
+import com.hiarias.quartz.mixin.PlayerListAccessor
 import io.papermc.paper.datapack.DatapackManager
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
@@ -26,12 +28,12 @@ import org.bukkit.inventory.*
 import org.bukkit.loot.LootTable
 import org.bukkit.map.MapView
 import org.bukkit.plugin.Plugin
-import org.bukkit.plugin.PluginManager
+import org.bukkit.plugin.PluginLoadOrder
 import org.bukkit.plugin.ServicesManager
 import org.bukkit.plugin.SimplePluginManager
+import org.bukkit.plugin.java.JavaPluginLoader
 import org.bukkit.plugin.messaging.Messenger
 import org.bukkit.potion.PotionEffectType
-import org.bukkit.scheduler.BukkitScheduler
 import org.bukkit.scoreboard.ScoreboardManager
 import org.bukkit.structure.StructureManager
 import org.bukkit.util.CachedServerIcon
@@ -39,6 +41,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
+import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.function.Consumer
 import java.util.logging.Logger
@@ -129,6 +132,59 @@ class QuartzServer(
         }
     }
 
+    fun loadPlugins() {
+        pluginManager.registerInterface(JavaPluginLoader::class.java)
+        val folder = Options.plugins
+
+        if (!folder.exists()) {
+            folder.mkdirs()
+        }
+
+        pluginManager.loadPlugins(folder).forEach {
+            try {
+                val message = "Loading ${it.description.fullName}"
+                it.logger.info(message)
+                it.onLoad()
+            } catch (t: Throwable) {
+                logger.fatal("${t.message} initializing ${it.description.fullName} (Is it up to date?)", t)
+            }
+        }
+    }
+
+    fun enablePlugins(order: PluginLoadOrder) {
+        if (order == PluginLoadOrder.STARTUP) {
+            TODO("Not yet implemented")
+        }
+
+        pluginManager.plugins.forEach {
+            if (!it.isEnabled && (it.description.load == order)) {
+                enablePlugin(it)
+            }
+        }
+
+        if (order == PluginLoadOrder.POSTWORLD) {
+            TODO("Not yet implemented")
+        }
+    }
+
+    fun disablePlugins() = pluginManager.disablePlugins()
+
+    private fun enablePlugin(plugin: Plugin) {
+        try {
+            plugin.description.permissions.forEach {
+                try {
+                    pluginManager.addPermission(it, false)
+                } catch (e: IllegalArgumentException) {
+                    logger.warn("Plugin ${plugin.description.fullName} tried to register permission '${it.name}' but it's already registered", e)
+                }
+            }
+            pluginManager.dirtyPermissibles()
+            pluginManager.enablePlugin(plugin)
+        } catch (t: Throwable) {
+            logger.fatal("${t.message} loading ${plugin.description.fullName} (Is it up to date?)", t)
+        }
+    }
+
     override fun sendPluginMessage(source: Plugin, channel: String, message: ByteArray) {
         TODO("Not yet implemented")
     }
@@ -165,69 +221,43 @@ class QuartzServer(
         TODO("Not yet implemented")
     }
 
-    override fun getMaxPlayers(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getMaxPlayers() = players.maxPlayers
 
     override fun setMaxPlayers(maxPlayers: Int) {
-        TODO("Not yet implemented")
+        (players as PlayerListAccessor).setMaxPlayers(maxPlayers)
     }
 
-    override fun getPort(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getPort() = console.serverPort
 
-    override fun getViewDistance(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getViewDistance() = console.properties.viewDistance
 
-    override fun getSimulationDistance(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getSimulationDistance() = console.properties.simulationDistance
 
-    override fun getIp(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getIp(): String = console.serverIp
 
-    override fun getWorldType(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getWorldType(): String =
+        (console.properties as DedicatedServerPropertiesAccessor).internalProperties.getProperty("level-type")
 
-    override fun getGenerateStructures(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getGenerateStructures() =
+        console.properties.getWorldGenSettings(console.registryAccess()).generateFeatures()
 
-    override fun getMaxWorldSize(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getMaxWorldSize() = console.properties.maxWorldSize
 
-    override fun getAllowEnd(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getAllowEnd() = configuration.getBoolean("settings.allow-end")
 
-    override fun getAllowNether(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getAllowNether() = console.isNetherEnabled
 
-    override fun getResourcePack(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getResourcePack(): String = console.resourcePack
 
-    override fun getResourcePackHash(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getResourcePackHash(): String = console.resourcePackHash.uppercase(Locale.ROOT)
 
     override fun getResourcePackPrompt(): String {
         TODO("Not yet implemented")
     }
 
-    override fun isResourcePackRequired(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isResourcePackRequired() = console.isResourcePackRequired
 
-    override fun hasWhitelist(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun hasWhitelist(): Boolean = console.properties.whiteList.get()
 
     override fun setWhitelist(value: Boolean) {
         TODO("Not yet implemented")
@@ -265,41 +295,24 @@ class QuartzServer(
         TODO("Not yet implemented")
     }
 
-    override fun getUpdateFolder(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getUpdateFolder(): String = configuration.getString("settings.update-folder", "update")!!
 
-    override fun getUpdateFolderFile(): File {
-        TODO("Not yet implemented")
-    }
+    override fun getUpdateFolderFile() = File(Options.plugins, configuration.getString("settings.update-folder", "update")!!)
 
-    override fun getConnectionThrottle(): Long {
-        TODO("Not yet implemented")
-    }
+    override fun getConnectionThrottle() = configuration.getLong("settings.connection-throttle")
 
-    override fun getTicksPerAnimalSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerAnimalSpawns() = configuration.getInt("ticks-per.animal-spawns")
 
-    override fun getTicksPerMonsterSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerMonsterSpawns() = configuration.getInt("ticks-per.monster-spawns")
 
-    override fun getTicksPerWaterSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerWaterSpawns() = configuration.getInt("ticks-per.water-spawns")
 
-    override fun getTicksPerWaterAmbientSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerWaterAmbientSpawns() = configuration.getInt("ticks-per.water-ambient-spawns")
 
-    override fun getTicksPerWaterUndergroundCreatureSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerWaterUndergroundCreatureSpawns() =
+        configuration.getInt("ticks-per.water-underground-creature-spawns")
 
-    override fun getTicksPerAmbientSpawns(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getTicksPerAmbientSpawns() = configuration.getInt("ticks-per.ambient-spawns")
 
     override fun getPlayer(name: String): Player? {
         TODO("Not yet implemented")
@@ -321,13 +334,9 @@ class QuartzServer(
         TODO("Not yet implemented")
     }
 
-    override fun getPluginManager(): PluginManager {
-        TODO("Not yet implemented")
-    }
+    override fun getPluginManager() = pluginManager
 
-    override fun getScheduler(): BukkitScheduler {
-        TODO("Not yet implemented")
-    }
+    override fun getScheduler() = TODO("Not yet implemented")
 
     override fun getServicesManager(): ServicesManager {
         TODO("Not yet implemented")
