@@ -1,9 +1,19 @@
 package com.hiarias.quartz.scheduler
 
 import org.bukkit.Bukkit
+import org.bukkit.Server
+import org.bukkit.command.Command
+import org.bukkit.command.CommandSender
+import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.generator.BiomeProvider
+import org.bukkit.generator.ChunkGenerator
 import org.bukkit.plugin.Plugin
+import org.bukkit.plugin.PluginDescriptionFile
+import org.bukkit.plugin.PluginLoader
 import org.bukkit.scheduler.BukkitTask
 import org.bukkit.scheduler.BukkitWorker
+import java.io.File
+import java.io.InputStream
 import java.util.LinkedList
 import java.util.concurrent.Callable
 import java.util.concurrent.CancellationException
@@ -13,6 +23,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 import java.util.logging.Level
+import java.util.logging.Logger
 
 const val ERROR = 0L
 const val NO_REPEATING = -1L
@@ -30,6 +41,7 @@ abstract class QuartzTask(
     @Volatile
     var next: QuartzTask? = null
     val createdAt = System.nanoTime()
+    var nextRun = 0
 
     override fun isSync() = sync
 
@@ -50,7 +62,7 @@ fun createSyncTask(plugin: Plugin, id: Int, period: Long, task: Runnable): Quart
     SyncQuartzTask(plugin, { task.run() }, id, resolvePeriod(period))
 
 
-fun createSyncTask(plugin: Plugin, id: Int, period: Long, task: Consumer<QuartzTask>): QuartzTask =
+fun createSyncTask(plugin: Plugin, id: Int, period: Long, task: Consumer<BukkitTask>): QuartzTask =
     SyncQuartzTask(plugin, { task.accept(it) }, id, resolvePeriod(period))
 
 fun createAsyncTask(runners: MutableMap<Int, QuartzTask>, plugin: Plugin, id: Int, period: Long, task: Runnable): QuartzTask =
@@ -273,6 +285,120 @@ class QuartzFuture<T>(
             period = CANCEL
             lock.notifyAll()
             return true
+        }
+    }
+}
+
+class EmptyTask : QuartzTask(
+    EmptyPlugin(),
+    NO_REPEATING.toInt(),
+    NO_REPEATING,
+    true
+) {
+    override fun run() {}
+
+    override fun cancel0(): Boolean {
+        period = CANCEL
+        return true
+    }
+
+    private class EmptyPlugin : Plugin {
+        var enabled = true
+
+        private val pdf = PluginDescriptionFile("QuartzEmpty", "1.0", "quartz")
+
+        override fun onTabComplete(
+            sender: CommandSender,
+            command: Command,
+            alias: String,
+            args: Array<out String>
+        ): MutableList<String>? {
+            TODO("Not yet implemented")
+        }
+
+        override fun onCommand(
+            sender: CommandSender,
+            command: Command,
+            label: String,
+            args: Array<out String>
+        ): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun getDataFolder(): File {
+            TODO("Not yet implemented")
+        }
+
+        override fun getDescription(): PluginDescriptionFile = pdf
+
+        override fun getConfig(): FileConfiguration {
+            TODO("Not yet implemented")
+        }
+
+        override fun getResource(filename: String): InputStream? {
+            TODO("Not yet implemented")
+        }
+
+        override fun saveConfig() {
+            TODO("Not yet implemented")
+        }
+
+        override fun saveDefaultConfig() {
+            TODO("Not yet implemented")
+        }
+
+        override fun saveResource(resourcePath: String, replace: Boolean) {
+            TODO("Not yet implemented")
+        }
+
+        override fun reloadConfig() {
+            TODO("Not yet implemented")
+        }
+
+        override fun getPluginLoader(): PluginLoader {
+            TODO("Not yet implemented")
+        }
+
+        override fun getServer(): Server {
+            TODO("Not yet implemented")
+        }
+
+        override fun isEnabled() = enabled
+
+        override fun onDisable() {
+            TODO("Not yet implemented")
+        }
+
+        override fun onLoad() {
+            TODO("Not yet implemented")
+        }
+
+        override fun onEnable() {
+            TODO("Not yet implemented")
+        }
+
+        override fun isNaggable(): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun setNaggable(canNag: Boolean) {
+            TODO("Not yet implemented")
+        }
+
+        override fun getDefaultWorldGenerator(worldName: String, id: String?): ChunkGenerator? {
+            TODO("Not yet implemented")
+        }
+
+        override fun getDefaultBiomeProvider(worldName: String, id: String?): BiomeProvider? {
+            TODO("Not yet implemented")
+        }
+
+        override fun getLogger(): Logger {
+            TODO("Not yet implemented")
+        }
+
+        override fun getName(): String {
+            TODO("Not yet implemented")
         }
     }
 }
