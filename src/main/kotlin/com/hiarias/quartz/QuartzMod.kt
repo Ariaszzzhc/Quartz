@@ -4,14 +4,13 @@ import com.hiarias.quartz.event.PlayerManagerStartedCallback
 import com.hiarias.quartz.event.PluginStartupCallback
 import net.fabricmc.api.ModInitializer
 import net.minecraft.server.dedicated.DedicatedPlayerList
-import org.apache.logging.log4j.LogManager
 import org.bukkit.plugin.PluginLoadOrder
 
 object QuartzMod : ModInitializer {
     const val MOD_ID = "Quartz"
 
     @JvmStatic
-    val logger = LogManager.getLogger(MOD_ID)
+    val logger = QuartzLogger(MOD_ID)
 
     var bukkit: QuartzServer? = null
 

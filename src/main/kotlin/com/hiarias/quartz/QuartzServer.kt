@@ -2,7 +2,7 @@ package com.hiarias.quartz
 
 import com.destroystokyo.paper.entity.ai.MobGoals
 import com.destroystokyo.paper.profile.PlayerProfile
-import com.hiarias.quartz.mixin.DedicatedServerPropertiesAccessor
+import com.hiarias.quartz.mixin.SettingsAccessor
 import com.hiarias.quartz.mixin.PlayerListAccessor
 import com.hiarias.quartz.scheduler.QuartzScheduler
 import io.papermc.paper.datapack.DatapackManager
@@ -45,6 +45,7 @@ import java.io.InputStreamReader
 import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.function.Consumer
+import java.util.logging.Level
 import java.util.logging.Logger
 
 @Suppress("DEPRECATION")
@@ -122,7 +123,7 @@ class QuartzServer(
         try {
             configuration.save(Options.bukkitSettings)
         } catch (e: IOException) {
-            logger.fatal("Could not save ${Options.bukkitSettings}", e)
+            logger.log(Level.SEVERE, "Could not save ${Options.bukkitSettings}", e)
         }
     }
 
@@ -130,7 +131,7 @@ class QuartzServer(
         try {
             configuration.save(Options.commandSettings)
         } catch (e: IOException) {
-            logger.fatal("Could not save ${Options.commandSettings}", e)
+            logger.log(Level.SEVERE, "Could not save ${Options.commandSettings}", e)
         }
     }
 
@@ -148,14 +149,14 @@ class QuartzServer(
                 it.logger.info(message)
                 it.onLoad()
             } catch (t: Throwable) {
-                logger.fatal("${t.message} initializing ${it.description.fullName} (Is it up to date?)", t)
+                logger.log(Level.SEVERE, "${t.message} initializing ${it.description.fullName} (Is it up to date?)", t)
             }
         }
     }
 
     fun enablePlugins(order: PluginLoadOrder) {
         if (order == PluginLoadOrder.STARTUP) {
-            TODO("Not yet implemented")
+            // TODO("Not yet implemented")
         }
 
         pluginManager.plugins.forEach {
@@ -177,13 +178,13 @@ class QuartzServer(
                 try {
                     pluginManager.addPermission(it, false)
                 } catch (e: IllegalArgumentException) {
-                    logger.warn("Plugin ${plugin.description.fullName} tried to register permission '${it.name}' but it's already registered", e)
+                    logger.log(Level.WARNING, "Plugin ${plugin.description.fullName} tried to register permission '${it.name}' but it's already registered", e)
                 }
             }
             pluginManager.dirtyPermissibles()
             pluginManager.enablePlugin(plugin)
         } catch (t: Throwable) {
-            logger.fatal("${t.message} loading ${plugin.description.fullName} (Is it up to date?)", t)
+            logger.log(Level.SEVERE, "${t.message} loading ${plugin.description.fullName} (Is it up to date?)", t)
         }
     }
 
@@ -238,7 +239,7 @@ class QuartzServer(
     override fun getIp(): String = console.serverIp
 
     override fun getWorldType(): String =
-        (console.properties as DedicatedServerPropertiesAccessor).internalProperties.getProperty("level-type")
+        (console.properties as SettingsAccessor).internalProperties.getProperty("level-type")
 
     override fun getGenerateStructures() =
         console.properties.getWorldGenSettings(console.registryAccess()).generateFeatures()
@@ -338,7 +339,7 @@ class QuartzServer(
 
     override fun getPluginManager() = pluginManager
 
-    override fun getScheduler() = TODO("Not yet implemented")
+    override fun getScheduler() = scheduler
 
     override fun getServicesManager(): ServicesManager {
         TODO("Not yet implemented")
@@ -402,9 +403,7 @@ class QuartzServer(
         TODO("Not yet implemented")
     }
 
-    override fun getLogger(): Logger {
-        return Logger.getLogger(QuartzServer::class.java.name)
-    }
+    override fun getLogger(): Logger = logger
 
     override fun getPluginCommand(name: String): PluginCommand? {
         TODO("Not yet implemented")
@@ -819,7 +818,7 @@ class QuartzServer(
                     properties.load(stream)
                     result = properties.getProperty("version")
                 } catch (ex: IOException) {
-                    QuartzMod.logger.fatal("Could not get Bukkit version!", ex)
+                    QuartzMod.logger.log(Level.SEVERE, "Could not get Bukkit version!", ex)
                 }
             }
             return result

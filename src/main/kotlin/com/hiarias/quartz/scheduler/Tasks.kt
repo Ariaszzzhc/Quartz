@@ -1,5 +1,6 @@
 package com.hiarias.quartz.scheduler
 
+import com.hiarias.quartz.QuartzMod
 import org.bukkit.Bukkit
 import org.bukkit.Server
 import org.bukkit.command.Command
@@ -393,9 +394,7 @@ open class EmptyTask : QuartzTask(
             TODO("Not yet implemented")
         }
 
-        override fun getLogger(): Logger {
-            TODO("Not yet implemented")
-        }
+        override fun getLogger(): Logger = QuartzMod.logger
 
         override fun getName(): String {
             TODO("Not yet implemented")
