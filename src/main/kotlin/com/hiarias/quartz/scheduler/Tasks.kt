@@ -68,7 +68,7 @@ fun createSyncTask(plugin: Plugin, id: Int, period: Long, task: Consumer<BukkitT
 fun createAsyncTask(runners: MutableMap<Int, QuartzTask>, plugin: Plugin, id: Int, period: Long, task: Runnable): QuartzTask =
     AsyncQuartzTask(runners, plugin, { task.run() }, id, resolvePeriod(period))
 
-fun createAsyncTask(runners: MutableMap<Int, QuartzTask>, plugin: Plugin, id: Int, period: Long, task: Consumer<QuartzTask>): QuartzTask =
+fun createAsyncTask(runners: MutableMap<Int, QuartzTask>, plugin: Plugin, id: Int, period: Long, task: Consumer<BukkitTask>): QuartzTask =
     AsyncQuartzTask(runners, plugin, { task.accept(it) }, id, resolvePeriod(period))
 
 private fun resolvePeriod(period: Long): Long {
@@ -289,7 +289,7 @@ class QuartzFuture<T>(
     }
 }
 
-class EmptyTask : QuartzTask(
+open class EmptyTask : QuartzTask(
     EmptyPlugin(),
     NO_REPEATING.toInt(),
     NO_REPEATING,
