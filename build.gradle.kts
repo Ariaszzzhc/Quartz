@@ -1,6 +1,7 @@
 plugins {
     val kotlinVersion: String by System.getProperties()
     kotlin("jvm").version(kotlinVersion)
+    kotlin("plugin.serialization").version(kotlinVersion)
     id("fabric-loom")
     java
 }
@@ -17,13 +18,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+
     // fabric
     val minecraftVersion: String by project
     minecraft("com.mojang:minecraft:$minecraftVersion")
 
-//    val yarnMappings: String by project
-//    mappings("net.fabricmc:yarn:${yarnMappings}:v2")
-    mappings(loom.officialMojangMappings())
+    val yarnMappings: String by project
+    mappings("net.fabricmc:yarn:${yarnMappings}:v2")
 
     val loaderVersion: String by project
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
@@ -33,9 +35,6 @@ dependencies {
 
     val fabricKotlinVersion: String by project
     modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
-
-    val paperVersion: String by project
-    implementation("io.papermc.paper:paper-api:${paperVersion}")
 }
 
 java {
